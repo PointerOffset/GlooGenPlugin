@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup> 
+    <TargetFramework>net472</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <!--This will test for the default Steam installation paths for Resonite on Windows and Linux.-->
+  <PropertyGroup Condition="'$(ResonitePath)'==''">
+    <ResonitePath Condition="'$(OS)' == 'Windows_NT' and Exists('C:\Program Files (x86)\Steam\steamapps\common\Resonite\')">C:\Program Files (x86)\Steam\steamapps\common\Resonite\</ResonitePath> 
+    <ResonitePath Condition="'$(OS)' != 'Windows_NT' and Exists('$(HOME)/.local/share/Steam/steamapps/common/Resonite/')">$(HOME)/.local/share/Steam/steamapps/common/Resonite/</ResonitePath>
+    <!--If neither path above exists, you can define your custom Resonite install directory here -->
+    <!--You could also set an system/user environment variable named "ResonitePath". Include the trailing slash!-->
+    <ResonitePath Condition="'$(ResonitePath)'==''"></ResonitePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="FrooxEngine">
+      <HintPath>$(ResonitePath)Resonite_Data\Managed\FrooxEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Elements.Core">
+      <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Elements.Assets">
+      <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Assets.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>$(ResonitePath)Resonite_Data\Managed\System.ValueTuple.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.15" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.15" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)Libraries" />
+    <Copy SourceFiles="$(OutDir)Microsoft.OpenApi.dll" DestinationFolder="$(ResonitePath)Libraries" />
+    <Copy SourceFiles="$(OutDir)Microsoft.OpenApi.Readers.dll" DestinationFolder="$(ResonitePath)Libraries" />
+    <Copy SourceFiles="$(OutDir)SharpYaml.dll" DestinationFolder="$(ResonitePath)Libraries" />
+    <!--Uncomment the below line to automatically run Resonite after every build. Useful for iteration!-->
+    <!--Exec Command="$(ResonitePath)Resonite.exe -donotautoloadhome -screen -screen-fullscreen 0 -screen-width 1920 -screen-height 1080 -Invisible -LoadAssembly $(ResonitePath)Libraries/ResoniteOpenApiPlugin.dll" /-->
+  </Target>
+
+</Project>

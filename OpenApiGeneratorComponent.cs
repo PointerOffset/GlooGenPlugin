@@ -161,7 +161,6 @@ public class OpenApiGenerator : Component, ICustomInspector
                             typeof(Slot)
                         );
                         dynVarHelperMethod.Invoke(null, [targetSlot, $"{schemaProperty.Value.Items.Reference.Id}.template", null, true]);
-                        break;
                     }
                     break;
                 default:

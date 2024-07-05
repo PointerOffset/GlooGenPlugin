@@ -2,15 +2,10 @@
 using FrooxEngine;
 using FrooxEngine.UIX;
 using Microsoft.OpenApi.Readers;
-using Microsoft.OpenApi.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Microsoft.OpenApi.Extensions;
-using SharpYaml.Tokens;
-using Microsoft.OpenApi.Any;
 
-namespace GloodGenPlugin;
+namespace GlooGenPlugin;
 
 [Category(new string[] { "Network/OpenApi" })]
 public class OpenApiGenerator : Component, ICustomInspector

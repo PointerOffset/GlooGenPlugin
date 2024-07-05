@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Ignore Resonite-Generated files
 Migrations/
+
+# Exluding source KRA for logo and other images.
+*.kra

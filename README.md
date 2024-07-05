@@ -16,10 +16,9 @@ This project depends on `Microsoft.OpenApi` and `Microsoft.OpenApi.Readers` to p
 
 These dependencies are accounted for in `GlooGenPlugin.csproj`. Restoring packages should install the dependencies and building will automatically copy the required DLLs to Resonite's `Libraries` path along with the plugin itself as long as `ResonitePath` has been specified in the project file or as an environment variable.
 
-A recent .Net SDK such as .Net8 will work fine for building. The project file targets framework `net472` for comaptability with Resonite's Mono runtime.
+A recent .Net SDK such as _.Net 8.0_ will work fine for building. The project file targets framework `net472` for comaptability with Resonite's Mono runtime.
 
 ## Building
-A recent .Net SDK such as _.Net 8.0_ will work fine for building. The project file targets framework `net472` for comaptability with Resonite's Mono runtime.
 
 1. Clone the Repository:
     ```

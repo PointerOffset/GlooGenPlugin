@@ -4,6 +4,8 @@ using FrooxEngine.UIX;
 using Microsoft.OpenApi.Readers;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using Microsoft.OpenApi.Extensions;
+using Microsoft.OpenApi;
 
 namespace GlooGenPlugin;
 
@@ -32,11 +34,19 @@ public class OpenApiGenerator : Component, ICustomInspector
 
     public void BuildInspectorUI(UIBuilder ui)
     {
+        string glooGenVersion = this.GetType().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        glooGenVersion = glooGenVersion.Substring(0, glooGenVersion.IndexOf('+'));
         WorkerInspector.BuildInspectorUI(this, ui);
 		ui.HorizontalLayout(4f);
 		LocaleString text = "Generate Model Slots";
 		ui.Button(in text, GenerateModelsPressed);
 		ui.NestOut();
+
+        // Print out some debug/version info.
+        text = "------------------";
+        ui.Text(in text);
+        text = $"GlooGen ver: {glooGenVersion}";
+        ui.Text(in text);
     }
 
     [SyncMethod(typeof(Action), new string[] { })]
@@ -62,22 +72,31 @@ public class OpenApiGenerator : Component, ICustomInspector
                     AttachVariable(_slot, schemaProperty);
                 }
             }
+            else
+            {
+                AttachVariable(_slot, schema);
+            }
         }
 
-        // For any slot that is an array
-        // and it has a tag that matches any model names
-        // take that slot's tag, find the slot with its name.template
-        // populate the template ref with the matching slot by name
-        List<DynamicReferenceVariable<Slot>> templateVars = TargetModelSlot.Target
-            .GetComponentsInChildren<DynamicReferenceVariable<Slot>>()
+        // For any property that's an object, we should try to populate any ".template" variable referencing the appropriate model slot.
+        List<DynamicReferenceVariable<Slot>> templateVars = TargetModelSlot.Target.GetComponentsInChildren<DynamicReferenceVariable<Slot>>()
             .Where( s => s.VariableName.Value.EndsWith(".template"))
             .ToList();
         
+        // TODO: Make this better. Find a nice way to know ahead of time if a template slot exists for a parsed object.
+        // Right now we are creating a .template DynamicReferenceVariable<Slot> preemptively. This will check if a slot
+        // exists and destroys the .template DynamicReferenceVariable<Slot> if we don't need it.
         foreach(DynamicReferenceVariable<Slot> templateVar in templateVars)
         {
             string _objectTemplateName = templateVar.VariableName.Value.Substring(0, templateVar.VariableName.Value.Length - ".template".Length);
-            Slot _templateSlot = TargetModelSlot.Target.FindChild(_objectTemplateName);
-            templateVar.Reference.Target = _templateSlot;
+            if(parsedSpec.Components.Schemas.ContainsKey(_objectTemplateName))
+            {
+                templateVar.Reference.Target = TargetModelSlot.Target.FindChild(_objectTemplateName);
+            }
+            else{
+                UniLog.Warning($"[GlooGen] Could not find template slot for object {_objectTemplateName}.");
+                templateVar.Destroy();
+            }
         }
 
     }
@@ -140,12 +159,28 @@ public class OpenApiGenerator : Component, ICustomInspector
                     dynVarHelperMethod.Invoke(null, [targetSlot, schemaProperty.Key, null, true]);
                     break;
                 case("object"):
+                    if(schemaProperty.Value.AdditionalProperties != null || schemaProperty.Value.AdditionalProperties?.Properties.Count > 0)
+                    {
+
+                        // Recursively call AttachVariable for objects that have additional properties.
+                        AttachVariable(
+                            targetSlot, 
+                            new KeyValuePair<string, OpenApiSchema?>(schemaProperty.Key, schemaProperty.Value.AdditionalProperties)
+                        );
+                        break;
+                    }
                     dynVarHelperMethod = typeof(DynamicVariableHelper).GetGenericMethod(
                         helperMethodName,
                         helperBindingFlags,
                         typeof(Slot)
                     );
                     dynVarHelperMethod.Invoke(null, [targetSlot, schemaProperty.Key, null, true]);
+                    dynVarHelperMethod = typeof(DynamicVariableHelper).GetGenericMethod(
+                        helperMethodName,
+                        helperBindingFlags,
+                        typeof(Slot)
+                    );
+                    dynVarHelperMethod.Invoke(null, [targetSlot, $"{schemaProperty.Value.Reference.Id}.template", null, true]);
                     break;
                 case("array"):
                     Slot arraySlot = Slot.AddSlot($"{schemaProperty.Key}[]");

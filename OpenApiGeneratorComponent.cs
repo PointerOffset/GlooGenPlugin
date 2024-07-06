@@ -4,8 +4,6 @@ using FrooxEngine.UIX;
 using Microsoft.OpenApi.Readers;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using Microsoft.OpenApi.Extensions;
-using Microsoft.OpenApi;
 
 namespace GlooGenPlugin;
 

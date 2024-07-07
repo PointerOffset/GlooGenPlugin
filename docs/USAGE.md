@@ -1,7 +1,7 @@
 # GlooGen Usage Guide
 ## Installing and Running
 Copy the following DLLs to your `Libraries` directory where Resonite is installed.
-> **NOTE:** If you've built from source these DLLs should have already been copied to the correct directory. If `ResonitePath` was specified in `GlooGenPlugin.csproj` or exists as an environment variable, you're good to go.
+> **NOTE:** If you've built from source these DLLs should have already been copied to the correct directory. If `ResonitePath` was specified in `GlooGenPlugin.csproj` or exists as an environment variable at build-time, you're good to go.
 - `GlooGenPlug.dll`
 - `Microsoft.OpenApi.dll`
 - `Microsoft.OpenApi.Readers.dll`
